@@ -16,15 +16,15 @@ export class GenerateDto {
 }
 
 export class GenerateResponseDto {
-  @Expose({ name: "partner_api_key" })
+  @Expose({ name: "accessSecret" })
   @IsString()
   @IsNotEmpty()
-  partnerApiKey: string;
+  partnerAccessKeySecret: string;
 
-  @Expose({ name: "partner_api_key_id" })
+  @Expose({ name: "accessKey" })
   @IsString()
   @IsNotEmpty()
-  partnerApiKeyId: string;
+  partnerAccessKey: string;
 
   @Expose({ name: "entity_id" })
   @IsString()

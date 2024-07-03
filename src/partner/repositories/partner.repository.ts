@@ -1,58 +1,50 @@
 import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
-import { PartnerApiKey } from "../entities/partner.entity";
-import { IPartnerApiKeyRepository } from "./partner.repository.interface";
+import { PartnerAccessKey } from "../entities/partner-access-key.entity";
+import { IPartnerAccessKeyRepository } from "./partner.repository.interface";
 
 @Injectable()
-export class PartnerApiKeyRepository implements IPartnerApiKeyRepository {
+export class PartnerAccessKeyRepository implements IPartnerAccessKeyRepository {
   constructor(
-    @InjectRepository(PartnerApiKey)
-    private readonly repo: Repository<PartnerApiKey>,
+    @InjectRepository(PartnerAccessKey)
+    private readonly repo: Repository<PartnerAccessKey>,
   ) {}
 
-  async findAll(): Promise<PartnerApiKey[]> {
+  async findAll(): Promise<PartnerAccessKey[]> {
     return this.repo.find();
   }
 
-  async findOneBy(where: Partial<PartnerApiKey>): Promise<PartnerApiKey | undefined> {
+  async findOneBy(where: Partial<PartnerAccessKey>): Promise<PartnerAccessKey | undefined> {
     return this.repo.findOne({ where });
   }
 
-  async findById(id: number): Promise<PartnerApiKey | undefined> {
-    return this.repo.findOneBy({ id });
-  }
-
-  async findByEntityId(entityId: string): Promise<PartnerApiKey[] | undefined> {
+  async findByEntityId(entityId: string): Promise<PartnerAccessKey[] | undefined> {
     return this.repo.findBy({ entity_id: entityId });
   }
 
-  async findByEntityIdActive(entityId: string): Promise<PartnerApiKey[] | undefined> {
+  async findByEntityIdActive(entityId: string): Promise<PartnerAccessKey[] | undefined> {
     return this.repo.findBy({ entity_id: entityId, is_active: true });
   }
 
-  async create(partnerData: Partial<PartnerApiKey>): Promise<PartnerApiKey> {
+  async create(partnerData: Partial<PartnerAccessKey>): Promise<PartnerAccessKey> {
     const partner = this.repo.create(partnerData);
     return this.repo.save(partner);
   }
 
-  async update(id: number, partnerData: Partial<PartnerApiKey>): Promise<void> {
-    await this.repo.update(id, partnerData);
+  async update(partnerAccessKeyId: string, partnerData: Partial<PartnerAccessKey>): Promise<void> {
+    await this.repo.update(partnerAccessKeyId, partnerData);
   }
 
-  async delete(id: number): Promise<void> {
-    await this.repo.delete(id);
-  }
-
-  async deleteByPartnerApiKeyId(partnerApiKeyId: string): Promise<void> {
-    await this.repo.delete({ partner_api_key_id: partnerApiKeyId });
-  }
-
-  async save(partner: PartnerApiKey): Promise<PartnerApiKey> {
+  async save(partner: PartnerAccessKey): Promise<PartnerAccessKey> {
     return this.repo.save(partner);
   }
 
-  async findByPartnerApiKeyId(partnerApiKeyId: string): Promise<PartnerApiKey | undefined> {
-    return this.repo.findOneBy({ partner_api_key_id: partnerApiKeyId });
+  async findByPartnerAccessKeyId(partnerAccessKeyId: string): Promise<PartnerAccessKey | undefined> {
+    return this.repo.findOneBy({ key_id: partnerAccessKeyId });
+  }
+
+  async findByPartnerAccessKeyIdActive(partnerAccessKeyId: string): Promise<PartnerAccessKey | undefined> {
+    return this.repo.findOneBy({ key_id: partnerAccessKeyId, is_active: true });
   }
 }

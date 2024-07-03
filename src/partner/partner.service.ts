@@ -1,83 +1,71 @@
 import * as bcrypt from "bcrypt";
 import { Injectable } from "@nestjs/common";
 import { LoggerService } from "../common/logger.service";
-import { PartnerApiKey } from "./entities/partner.entity";
-import { v4 as uuidv4 } from "uuid";
-import { PartnerApiKeyRepository } from "./repositories/partner.repository";
+import { PartnerAccessKey } from "./entities/partner-access-key.entity";
+import { PartnerAccessKeyRepository } from "./repositories/partner.repository";
 import { RemoveDto } from "../auth/dto/remove.dto";
 
 @Injectable()
 export class PartnerService {
   constructor(
-    private readonly partnerApiKeyRepository: PartnerApiKeyRepository,
+    private readonly partnerAccessKeyRepository: PartnerAccessKeyRepository,
     private readonly logger: LoggerService,
   ) {}
 
-  generatePartnerApiKeyObj(partnerDetails: Record<string, any>, hashedApiKey: string): PartnerApiKey {
-    const partnerApiKeyObj = new PartnerApiKey();
-    partnerApiKeyObj.entity_id = partnerDetails.entityId;
-    partnerApiKeyObj.partner_api_key_id = `pak_${uuidv4()}`;
-    partnerApiKeyObj.user_id = partnerDetails.userId;
-    partnerApiKeyObj.organization_member_id = partnerDetails.organizationMemberId;
-    partnerApiKeyObj.hashed_api_key = hashedApiKey;
-    partnerApiKeyObj.is_active = true;
-    return partnerApiKeyObj;
+  generatePartnerAccessKeyObj(
+    partnerDetails: Record<string, any>,
+    accessKey: string,
+    hashedSecret: string,
+  ): PartnerAccessKey {
+    const partnerAccessKeyObj = new PartnerAccessKey();
+    partnerAccessKeyObj.entity_id = partnerDetails.entityId;
+    partnerAccessKeyObj.key_id = accessKey;
+    partnerAccessKeyObj.user_id = partnerDetails.userId;
+    partnerAccessKeyObj.organization_member_id = partnerDetails.organizationMemberId;
+    partnerAccessKeyObj.key_secret_hash = hashedSecret;
+    partnerAccessKeyObj.is_active = true;
+    return partnerAccessKeyObj;
   }
 
-  async createPartnerApiKey(partnerApiKey: PartnerApiKey): Promise<PartnerApiKey> {
-    return this.partnerApiKeyRepository.create(partnerApiKey);
+  async createPartnerAccessKey(partnerAccessKeyObj: PartnerAccessKey): Promise<PartnerAccessKey> {
+    return this.partnerAccessKeyRepository.create(partnerAccessKeyObj);
   }
 
-  async markPartnerApiKeysAsRevoked(entityId: string, _log_ctx: Record<string, any>): Promise<void> {
-    const activePartnerApiKeys = await this.partnerApiKeyRepository.findByEntityIdActive(entityId);
-    if (!activePartnerApiKeys || activePartnerApiKeys.length === 0) {
+  async listPartnerAccessKeys(entityId: string, showAll = false): Promise<Partial<PartnerAccessKey>[]> {
+    if (showAll) {
+      return this.partnerAccessKeyRepository.findByEntityId(entityId);
+    }
+    return this.partnerAccessKeyRepository.findByEntityIdActive(entityId);
+  }
+
+  async removeByPartnerAccessKey(removeDto: RemoveDto, _log_ctx: Record<string, any>) {
+    const partnerAccessKey = await this.partnerAccessKeyRepository.findOneBy({
+      key_id: removeDto.partnerAccessKeyId,
+    });
+
+    if (!partnerAccessKey) {
+      this.logger.warn("Partner access key not found, continuing..", { ..._log_ctx });
       return;
     }
 
-    this.logger.log("Pre-existing partner api keys found. Revoking existing api keys.", {
-      ..._log_ctx,
-      activePartnerApiKeysLength: activePartnerApiKeys.length,
-    });
-    for (const partnerApiKey of activePartnerApiKeys) {
-      partnerApiKey.is_active = false;
-      await this.partnerApiKeyRepository.save(partnerApiKey);
-    }
+    partnerAccessKey.is_active = false;
+    await this.partnerAccessKeyRepository.save(partnerAccessKey);
+
+    this.logger.log("Partner access key found, updated successfully", { ..._log_ctx });
+    return;
   }
 
-  async listPartnerApiKeys(entityId: string, showAll = false): Promise<Partial<PartnerApiKey>[]> {
-    if (showAll) {
-      return this.partnerApiKeyRepository.findByEntityId(entityId);
-    }
-    return this.partnerApiKeyRepository.findByEntityIdActive(entityId);
-  }
+  async checkIfValidAccessKeyAndSecret(accessKey: string, accessSecret: string, requestId: string): Promise<boolean> {
+    const partnerAccessKey = await this.partnerAccessKeyRepository.findByPartnerAccessKeyIdActive(accessKey);
 
-  async removeByPartnerApiKey(removeDto: RemoveDto, _log_ctx: Record<string, any>): Promise<PartnerApiKey> {
-    const partnerApiKey = await this.partnerApiKeyRepository.findOneBy({
-      partner_api_key_id: removeDto.partnerApiKeyId,
-      entity_id: removeDto.entityId,
-    });
-
-    if (!partnerApiKey) {
-      this.logger.warn("Partner API key not found", { ..._log_ctx });
-      return null;
-    }
-    partnerApiKey.is_active = false;
-
-    this.logger.log("Revoking partner api key", { ..._log_ctx });
-    return await this.partnerApiKeyRepository.save(partnerApiKey);
-  }
-
-  async checkIfValidPartnerApiKey(entityId: string, apiKey: string, requestId: string): Promise<boolean> {
-    const partnerApiKey = await this.partnerApiKeyRepository.findByEntityIdActive(entityId);
-
-    if (!partnerApiKey || partnerApiKey.length === 0) {
-      this.logger.warn("No active partner api key found", { requestId });
+    if (!partnerAccessKey) {
+      this.logger.warn("Partner Access Key not found", { requestId });
       return false;
     }
 
-    const isValid = await bcrypt.compare(apiKey, partnerApiKey[0].hashed_api_key);
+    const isValid = await bcrypt.compare(accessSecret, partnerAccessKey.key_secret_hash);
     if (!isValid) {
-      this.logger.warn("Invalid partner api key", { requestId });
+      this.logger.warn("Invalid Partner Access Key", { requestId });
       return false;
     }
     return true;

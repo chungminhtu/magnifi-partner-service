@@ -3,7 +3,7 @@ import { FastifyReply, FastifyRequest } from "fastify";
 import { StreamService } from "./stream.service";
 import { CreateStreamDto } from "./dto/create-stream.dto";
 import { LoggerService } from "src/common/logger.service";
-import { ApiKeyPartnerGuard } from "../auth/guards/api-key-partner.guard";
+import { AccessKeyPartnerGuard } from "../auth/guards/access-key-partner.guard";
 
 @Controller({
   path: "stream",
@@ -26,7 +26,7 @@ export class StreamController {
   }
 
   @Post()
-  @UseGuards(ApiKeyPartnerGuard)
+  @UseGuards(AccessKeyPartnerGuard)
   async createStream(
     @Request() req: FastifyRequest,
     @Body() createStreamDto: CreateStreamDto,

@@ -1,10 +1,10 @@
 import { Expose } from "class-transformer";
 import { IsString, IsBoolean, IsNotEmpty, IsDate } from "class-validator";
 
-export class PartnerApiKeyResponseDto {
-  @Expose({ name: "partner_api_key_id" })
+export class ListResponseDto {
+  @Expose({ name: "key_id" })
   @IsString()
-  partnerApiKeyId: string;
+  partnerAccessKeyId: string;
 
   @Expose({ name: "entity_id" })
   @IsString()

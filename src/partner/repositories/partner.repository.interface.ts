@@ -1,15 +1,21 @@
-import { PartnerApiKey } from "../entities/partner.entity";
+import { PartnerAccessKey } from "../entities/partner-access-key.entity";
 
-export interface IPartnerApiKeyRepository {
-  findAll(): Promise<PartnerApiKey[]>;
-  findOneBy(where: Partial<PartnerApiKey>): Promise<PartnerApiKey | undefined>;
-  findById(id: number): Promise<PartnerApiKey | undefined>;
-  findByEntityId(entityId: string): Promise<PartnerApiKey[] | undefined>;
-  findByEntityIdActive(entityId: string): Promise<PartnerApiKey[] | undefined>;
-  create(partnerData: Partial<PartnerApiKey>): Promise<PartnerApiKey>;
-  update(id: number, partnerData: Partial<PartnerApiKey>): Promise<void>;
-  delete(id: number): Promise<void>;
-  deleteByPartnerApiKeyId(partnerApiKeyId: string): Promise<void>;
-  save(partner: PartnerApiKey): Promise<PartnerApiKey>;
-  findByPartnerApiKeyId(partnerApiKeyId: string): Promise<PartnerApiKey | undefined>;
+export interface IPartnerAccessKeyRepository {
+  findAll(): Promise<PartnerAccessKey[]>;
+
+  findOneBy(where: Partial<PartnerAccessKey>): Promise<PartnerAccessKey | undefined>;
+
+  findByEntityId(entityId: string): Promise<PartnerAccessKey[] | undefined>;
+
+  findByEntityIdActive(entityId: string): Promise<PartnerAccessKey[] | undefined>;
+
+  create(partnerData: Partial<PartnerAccessKey>): Promise<PartnerAccessKey>;
+
+  update(partnerAccessKeyId: string, partnerData: Partial<PartnerAccessKey>): Promise<void>;
+
+  save(partner: PartnerAccessKey): Promise<PartnerAccessKey>;
+
+  findByPartnerAccessKeyId(partnerAccessKeyId: string): Promise<PartnerAccessKey | undefined>;
+
+  findByPartnerAccessKeyIdActive(partnerAccessKeyId: string): Promise<PartnerAccessKey | undefined>;
 }

@@ -36,7 +36,7 @@ export class LoggingMiddleware implements NestMiddleware {
     res.on("error", (err) => {
       const duration = Date.now() - start;
 
-      this.logger.error("Request error", {
+      this.logger.error("request error", {
         request: {
           method,
           url,
