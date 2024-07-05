@@ -1,12 +1,3 @@
-import { IsString, IsNotEmpty } from "class-validator";
-import { Expose } from "class-transformer";
+import { BaseDto } from "./base.dto";
 
-export class RemoveDto {
-  @IsString()
-  @IsNotEmpty()
-  partnerAccessKeyId: string;
-
-  @IsString()
-  @IsNotEmpty()
-  entityId: string;
-}
+export class RemoveDto extends BaseDto {}

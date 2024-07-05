@@ -4,6 +4,7 @@ import { LoggerService } from "../common/logger.service";
 import { PartnerAccessKey } from "./entities/partner-access-key.entity";
 import { PartnerAccessKeyRepository } from "./repositories/partner.repository";
 import { RemoveDto } from "../auth/dto/remove.dto";
+import { RenameDto } from "../auth/dto/rename.dto";
 
 @Injectable()
 export class PartnerService {
@@ -23,6 +24,7 @@ export class PartnerService {
     partnerAccessKeyObj.user_id = partnerDetails.userId;
     partnerAccessKeyObj.organization_member_id = partnerDetails.organizationMemberId;
     partnerAccessKeyObj.key_secret_hash = hashedSecret;
+    partnerAccessKeyObj.name = partnerDetails.name;
     partnerAccessKeyObj.is_active = true;
     return partnerAccessKeyObj;
   }
@@ -40,7 +42,7 @@ export class PartnerService {
 
   async removeByPartnerAccessKey(removeDto: RemoveDto, _log_ctx: Record<string, any>) {
     const partnerAccessKey = await this.partnerAccessKeyRepository.findOneBy({
-      key_id: removeDto.partnerAccessKeyId,
+      key_id: removeDto.partnerAccessKey,
     });
 
     if (!partnerAccessKey) {
@@ -53,6 +55,23 @@ export class PartnerService {
 
     this.logger.log("Partner access key found, updated successfully", { ..._log_ctx });
     return;
+  }
+
+  async renamePartnerAccessKey(renameDto: RenameDto, _log_ctx: Record<string, any>): Promise<PartnerAccessKey | null> {
+    const partnerAccessKey = await this.partnerAccessKeyRepository.findOneBy({
+      key_id: renameDto.partnerAccessKey,
+    });
+
+    if (!partnerAccessKey) {
+      this.logger.warn("Partner access key not found, continuing..", { ..._log_ctx });
+      return null;
+    }
+
+    partnerAccessKey.name = renameDto.name;
+    await this.partnerAccessKeyRepository.save(partnerAccessKey);
+
+    this.logger.log("Partner access key found, updated successfully", { ..._log_ctx });
+    return partnerAccessKey;
   }
 
   async checkIfValidAccessKeyAndSecret(accessKey: string, accessSecret: string, requestId: string): Promise<boolean> {

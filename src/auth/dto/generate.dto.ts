@@ -13,6 +13,10 @@ export class GenerateDto {
   @IsString()
   @IsNotEmpty()
   organizationMemberId: string;
+
+  @IsString()
+  @IsNotEmpty()
+  name: string;
 }
 
 export class GenerateResponseDto {
@@ -30,4 +34,8 @@ export class GenerateResponseDto {
   @IsString()
   @IsNotEmpty()
   entityId: string;
+
+  @Expose({ name: "name" })
+  @IsString()
+  name: string;
 }

@@ -11,7 +11,7 @@ import { ListResponseDto } from "./dto/list.dto";
 import { GenerateResponseDto } from "./dto/generate.dto";
 import { validateSync } from "class-validator";
 import { RemoveDto } from "./dto/remove.dto";
-import { PartnerAccessKey } from "../partner/entities/partner-access-key.entity";
+import { RenameDto } from "./dto/rename.dto";
 
 const ACCESS_SECRET_LENGTH = 64;
 const SALT_ROUNDS = 10;
@@ -53,7 +53,12 @@ export class AuthService {
 
     const transformedInstance = plainToInstance(
       GenerateResponseDto,
-      { accessSecret, accessKey: partnerAccessKey.key_id, entity_id: partnerAccessKey.entity_id },
+      {
+        accessSecret,
+        accessKey: partnerAccessKey.key_id,
+        entity_id: partnerAccessKey.entity_id,
+        name: partnerAccessKey.name,
+      },
       {
         excludeExtraneousValues: true,
       },
@@ -71,6 +76,24 @@ export class AuthService {
     const partnerAccessKeys = await this.partnerService.listPartnerAccessKeys(entityId, showAll);
 
     const transformedInstance = plainToInstance(ListResponseDto, partnerAccessKeys, {
+      excludeExtraneousValues: true,
+    });
+
+    const errors = validateSync(transformedInstance);
+    if (errors.length > 0) {
+      throw new Error(`validation failed: ${errors.toString()}`);
+    }
+
+    return transformedInstance;
+  }
+
+  async rename(renameDto: RenameDto, _log_ctx: Record<string, any>) {
+    const partnerAccessKey = await this.partnerService.renamePartnerAccessKey(renameDto, _log_ctx);
+    if (!partnerAccessKey) {
+      return null;
+    }
+
+    const transformedInstance = plainToInstance(ListResponseDto, partnerAccessKey, {
       excludeExtraneousValues: true,
     });
 

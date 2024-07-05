@@ -4,7 +4,7 @@ import { IsString, IsBoolean, IsNotEmpty, IsDate } from "class-validator";
 export class ListResponseDto {
   @Expose({ name: "key_id" })
   @IsString()
-  partnerAccessKeyId: string;
+  partnerAccessKey: string;
 
   @Expose({ name: "entity_id" })
   @IsString()
@@ -20,6 +20,10 @@ export class ListResponseDto {
   @IsString()
   @IsNotEmpty()
   organizationMemberId: string;
+
+  @Expose({ name: "name" })
+  @IsString()
+  name: string;
 
   @Expose({ name: "is_active" })
   @IsBoolean()
